@@ -1,109 +1,91 @@
-import urllib.request, json
 import datetime
+import requests
+import yaml
+
+import pandas as pd
+
+CONFIG_FILE = "config.yml"
 
 
-class prediction:
+class predictions:
     def __init__(self):
-        # list of questions for the Ukraine Conflict Challenge. Ideally, this should not be hard-coded, but obtained from the API
-        self.ids = [
-            9939,
-            10002,
-            9941,
-            9999,
-            9930,
-            9935,
-            9994,
-            10004,
-            9943,
-            9942,
-            9993,
-            10005,
-            9936,
-            9937,
-            10001,
-            9933,
-            9991,
-            10003,
-            9990,
-            9988,
-            9986,
-            9985,
-        ]
-
+        with open(CONFIG_FILE) as file:
+            self.config = yaml.load(file, Loader=yaml.FullLoader)
+        self.question_ids = self.config["questions"]
+        self.filters = self.config["filters"]
+        self.thresholds = self.config["thresholds"]
         self.tweets = []
 
-        # for every question, get past community predictions and compare whether there has been a significant change
-        for id in self.ids:
-            question_url = "https://www.metaculus.com/api2/questions/" + str(id)
+    def create_threshold(self, hours):
+        return datetime.datetime.now() - datetime.timedelta(hours=hours)
 
-            # read json file from public Metaculus API
-            with urllib.request.urlopen(question_url) as url:
-                data = json.loads(url.read().decode())
+    def add_tweet(
+        self, last_prediction, current_prediction, change, elapsed, title, url
+    ):
+        has_increased = change > 0
+        arrow = "🔼" if has_increased else "🔽"
+        added_sign = "+" if has_increased else ""
+
+        current_pred_formatted = str(round(current_prediction * 100)) + "%"
+        last_pred_formatted = str(round(last_prediction * 100)) + "%"
+        change_formatted = f"{added_sign}{round(change * 100)}%"
+
+        tweet = f"{arrow} {title}"
+        tweet += f"\nCommunity prediction: {current_pred_formatted}"
+        tweet += f"\n{change_formatted} in the last {elapsed} hours"
+        tweet += f"\nfrom {last_pred_formatted} to {current_pred_formatted}"
+        tweet += f"\nhttps://www.metaculus.com{url}"
+
+        print("Tweet added!")
+        self.tweets.append(tweet)
+
+    def get(self):
+
+        # for every question, get past community predictions and compare whether there has been a significant change
+        for id in self.question_ids:
+
+            # read JSON file from public Metaculus API
+            question_url = "https://www.metaculus.com/api2/questions/" + str(id)
+            data = requests.get(question_url).json()
 
             title = data["title"]
-            web_url = data["page_url"]
+            print(f"{id} - {title}")
             timeseries = data["community_prediction"]["history"]
-            # only keep relevant entries
-            timeseries = [
-                {
-                    "prediction": timeseries[index]["x1"]["q2"],
-                    "time": datetime.datetime.fromtimestamp(timeseries[index]["t"]),
-                }
-                for index in range(len(timeseries))
-            ]
 
-            # save latest time and predictions
-            current_time = timeseries[-1]["time"]
-            current_prediction = timeseries[-1]["prediction"]
+            df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
+            df["prediction"] = df.x1.apply(pd.Series)["q2"]
+            df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
 
-            # filter most recent values - this could be refactored into a function
-            time_5 = current_time - datetime.timedelta(hours=5, minutes=0, seconds=0)
-            relevant_times_5 = list(
-                filter(lambda entry: entry["time"] >= time_5, timeseries)
-            )
-            diff_5 = relevant_times_5[0]["prediction"] - current_prediction
+            # convert timestamps to datetime
+            df["time"] = pd.to_datetime(df.time, unit="s")
 
-            relevant_times_24 = list(
-                filter(lambda entry: entry["time"] >= time_24, timeseries)
-            )
-            time_24 = current_time - datetime.timedelta(hours=24, minutes=0, seconds=0)
-            diff_24 = relevant_times_24[0]["prediction"] - current_prediction
+            # check filters: does the question qualify?
+            minimum_time = self.create_threshold(hours=self.filters["minimum_hours"])
+            if (
+                df.time.min() > minimum_time
+                or data["number_of_predictions"] < self.filters["minimum_forecasts"]
+            ):
+                print("Question skipped")
+                next
 
-            if abs(diff_5) > 0.05:
-                if diff_5 < 0:
-                    direction = "upwards"
-                else:
-                    direction = "downwards"
-                self.tweets.append(
-                    "The community prediction for the question\n"
-                    + "'"
-                    + title
-                    + "'\n"
-                    + "on Metaculus has changed "
-                    + direction
-                    + " by more than 5% over the last 5h. \nIt is now at "
-                    + str(int(current_prediction * 100))
-                    + "% probability.\n\n"
-                    + "https://www.metaculus.com/questions/"
-                    + str(id)
-                    + "/"
-                )
-            elif abs(diff_24) > 0.1:
-                if diff_24 < 0:
-                    direction = "upwards"
-                else:
-                    direction = "downwards"
-                self.tweets.append(
-                    "The Metaculus community prediction on\n"
-                    + "'"
-                    + title
-                    + "'\n"
-                    + "has changed "
-                    + direction
-                    + " by >10% over the last 24h. \nIt's now at "
-                    + str(int(current_prediction * 100))
-                    + "%.\n\n"
-                    + "https://www.metaculus.com/questions/"
-                    + str(id)
-                    + "/"
-                )
+            # save latest time and prediction
+            current_prediction = df.prediction.values[-1]
+
+            # identify large swings
+            for threshold in self.thresholds:
+                time_limit = self.create_threshold(hours=threshold["hours"])
+                last_prediction = df[df.time < time_limit].prediction.values[-1]
+                change = current_prediction - last_prediction
+
+                if abs(change) > threshold["swing"]:
+                    self.add_tweet(
+                        last_prediction=last_prediction,
+                        current_prediction=current_prediction,
+                        change=change,
+                        elapsed=threshold["hours"],
+                        title=title,
+                        url=data["page_url"],
+                    )
+                    break
+
+        return self.tweets
