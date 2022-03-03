@@ -30,10 +30,9 @@ class predictions:
         last_pred_formatted = str(round(last_prediction * 100)) + "%"
         change_formatted = f"{added_sign}{round(change * 100)}%"
 
-        tweet = f"{arrow} {title}"
+        tweet = f"{title}"
         tweet += f"\nCommunity prediction: {current_pred_formatted}"
-        tweet += f"\n{change_formatted} in the last {elapsed} hours"
-        tweet += f"\nfrom {last_pred_formatted} to {current_pred_formatted}"
+        tweet += f"\n{arrow} {change_formatted} in the last {elapsed} hours"
         tweet += f"\nhttps://www.metaculus.com{url}"
 
         print("Tweet added!")
