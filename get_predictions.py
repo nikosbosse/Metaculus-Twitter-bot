@@ -23,7 +23,7 @@ class predictions:
         self, last_prediction, current_prediction, change, elapsed, title, url
     ):
         has_increased = change > 0
-        arrow = "🔼" if has_increased else "🔽"
+        arrow = "⬆️" if has_increased else "⬇️"
         added_sign = "+" if has_increased else ""
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
