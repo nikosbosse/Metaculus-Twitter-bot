@@ -3,7 +3,6 @@ import time
 from create_api import create_api
 from get_predictions import predictions
 
-
 def post_tweet(event="", context=""):
     api = create_api()
     print("API created")
@@ -18,7 +17,7 @@ def post_tweet(event="", context=""):
                 api.create_tweet(text=tweet)
                 print("")
                 print(tweet)
-                time.sleep(30)
+                time.sleep(10)
         except Exception as e:
             raise e
 
