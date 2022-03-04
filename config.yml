@@ -1,0 +1,46 @@
+# List of questions for the Ukraine Conflict Challenge
+# Ideally, this should not be hard-coded, but obtained from the API
+questions:
+  - 10001
+  - 10002
+  - 10003
+  - 10004
+  - 10005
+  - 10046
+  - 10050
+  - 10051
+  - 10052
+  - 10053
+  - 2797
+  - 9743
+  - 9930
+  - 9933
+  - 9935
+  - 9936
+  - 9937
+  - 9939
+  - 9941
+  - 9942
+  - 9943
+  - 9985
+  - 9986
+  - 9988
+  - 9990
+  - 9991
+  - 9993
+  - 9994
+  - 9999
+
+# Exclude questions that are too recent or with too few forecasts
+filters:
+  minimum_hours: 24
+  minimum_forecasts: 10
+
+# Change thresholds (when at least 1 of these is true, a tweet will be sent)
+# - absolute change of >5% in the last 5 hours
+# - absolute change of >10% in the last 24 hours
+thresholds:
+  - hours: 5
+    swing: 0.05
+  - hours: 24
+    swing: 0.1
