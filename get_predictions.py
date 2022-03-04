@@ -32,8 +32,8 @@ class predictions:
 
         tweet = f"{title}"
         tweet += f"\n\n{arrow} Community prediction: {current_pred_formatted}"
-        tweet += f"\n{change_formatted} in the last {elapsed} hours"
-        tweet += f"\nhttps://www.metaculus.com{url}"
+        tweet += f"\n{change_formatted} in the last {elapsed} hours\n "
+        tweet += f"https://www.metaculus.com{url}"
 
         print("Tweet added!")
         self.tweets.append(tweet)
