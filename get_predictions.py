@@ -1,7 +1,10 @@
 import datetime
 import requests
+import tempfile
 import yaml
 
+from matplotlib.dates import DateFormatter
+import matplotlib.ticker as mtick
 import pandas as pd
 
 CONFIG_FILE = "config.yml"
@@ -19,8 +22,46 @@ class predictions:
     def create_threshold(self, hours):
         return datetime.datetime.now() - datetime.timedelta(hours=hours)
 
+    def make_chart(self, df, title):
+        if df.time.min() < self.create_threshold(24 * 365.2425):
+            date_format = "%B %Y"
+        elif df.time.min() > self.create_threshold(24 * 5):
+            date_format = "%-d %b %H:%M"
+        else:
+            date_format = "%-d %b"
+
+        ax = df.plot(
+            x="time",
+            y=["lower", "prediction", "upper"],
+            kind="line",
+            color=("#61676D", "#AEB1B4", "#61676D"),
+            linewidth=2,
+            ylim=(0, 1),
+            title=title,
+            xlabel="",
+            ylabel="Metaculus community prediction",
+            legend=False,
+            fontsize=12,
+            figsize=(14, 8),
+        )
+        ax.set_facecolor("#282F37")
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+        ax.xaxis.set_major_formatter(DateFormatter(date_format))
+        ax.grid("on", axis="y", linewidth=0.2)
+
+        with tempfile.NamedTemporaryFile(mode="wb", dir=".") as png:
+            filepath = f"{png.name}.png"
+            ax.get_figure().savefig(
+                filepath,
+                bbox_inches="tight",
+                dpi=300,
+                facecolor="white",
+                transparent=False,
+            )
+        return filepath
+
     def add_tweet(
-        self, last_prediction, current_prediction, change, elapsed, title, url
+        self, df, last_prediction, current_prediction, change, elapsed, title, url
     ):
         has_increased = change > 0
         arrow = "⬆️" if has_increased else "⬇️"
@@ -35,15 +76,14 @@ class predictions:
         tweet += f"\n{change_formatted} in the last {elapsed} hours"
         tweet += f"\nhttps://www.metaculus.com{url}"
 
+        chart_path = self.make_chart(df, title)
+        self.tweets.append({"text": tweet, "chart": chart_path})
         print("Tweet added!")
-        self.tweets.append(tweet)
 
     def get(self):
 
         # for every question, get past community predictions and compare whether there has been a significant change
         for id in self.question_ids:
-
-            # read JSON file from public Metaculus API
             question_url = "https://www.metaculus.com/api2/questions/" + str(id)
             data = requests.get(question_url).json()
 
@@ -52,7 +92,7 @@ class predictions:
             timeseries = data["community_prediction"]["history"]
 
             df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
-            df["prediction"] = df.x1.apply(pd.Series)["q2"]
+            df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
             df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
 
             # convert timestamps to datetime
@@ -67,7 +107,7 @@ class predictions:
                 print("Question skipped")
                 next
 
-            # save latest time and prediction
+            # save current prediction
             current_prediction = df.prediction.values[-1]
 
             # identify large swings
@@ -78,6 +118,7 @@ class predictions:
 
                 if abs(change) > threshold["swing"]:
                     self.add_tweet(
+                        df=df,
                         last_prediction=last_prediction,
                         current_prediction=current_prediction,
                         change=change,
