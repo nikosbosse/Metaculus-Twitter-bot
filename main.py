@@ -15,11 +15,10 @@ def post_tweet(event="", context=""):
     for tweet in tweets:
         try:
             if tweet:
-                media_id = api.simple_upload(filename=tweet["chart"])
-                api.update_status(text=tweet["text"], media_ids=[media_id])
+                api.update_status_with_media(status=tweet["text"], filename = tweet["chart"])
                 print("")
                 print(tweet)
-                time.sleep(30)
+                time.sleep(100)
         except Exception as e:
             raise e
 

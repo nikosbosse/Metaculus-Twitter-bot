@@ -3,6 +3,7 @@ import re
 import requests
 import tempfile
 import yaml
+import numpy as np
 
 from matplotlib.dates import DateFormatter
 import matplotlib.ticker as mtick
@@ -59,13 +60,17 @@ class predictions:
             x="time",
             y=["lower", "prediction", "upper"],
             kind="line",
-            color=("#61676D", "#AEB1B4", "#61676D"),
+            color=(
+                [38/255, 40/255, 43/255, 0.8], # "#61676D", 
+                "#AEB1B4", 
+                [38/255, 40/255, 43/255, 0.8], # "#61676D", # "#61676D"
+                ),
             linewidth=2,
             ylim=(0, 1),
             xlabel="",
             ylabel="Metaculus community prediction",
             legend=False,
-            fontsize=12,
+            fontsize=14,
             figsize=(14, 8),
         )
         ax.set_title(title_short, fontsize=18)
@@ -80,7 +85,7 @@ class predictions:
                 filepath,
                 bbox_inches="tight",
                 dpi=300,
-                facecolor="white",
+                facecolor= "white", #'none' maybe?
                 transparent=False,
             )
         return filepath
@@ -105,7 +110,7 @@ class predictions:
         change_formatted = f"{added_sign}{round(change * 100)}%"
 
         tweet = f"{title}"
-        tweet += f"\n{arrow} Community prediction: {current_pred_formatted}"
+        tweet += f"\nCommunity prediction: {current_pred_formatted} {arrow}"
         tweet += f"\n{change_formatted} in the last {elapsed} hours"
         tweet += f"\nhttps://www.metaculus.com{url}"
 
