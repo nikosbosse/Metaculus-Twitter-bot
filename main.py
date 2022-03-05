@@ -3,7 +3,6 @@ import time
 from create_api import create_api
 from get_predictions import predictions
 
-
 def post_tweet(event="", context=""):
     api = create_api()
     print("API created")

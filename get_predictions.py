@@ -109,10 +109,10 @@ class predictions:
         last_pred_formatted = str(round(last_prediction * 100)) + "%"
         change_formatted = f"{added_sign}{round(change * 100)}%"
 
-        tweet = f"{title} {arrow}"
+        tweet = f"{title}"
         tweet += f"\nCommunity prediction: {current_pred_formatted}"
-        tweet += f"\n{change_formatted} in the last {elapsed} hours"
-        tweet += f"\nhttps://www.metaculus.com{url}"
+        tweet += f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+        tweet += f"https://www.metaculus.com{url}"
 
         chart_path = self.make_chart(df, title_short)
         self.tweets.append({"text": tweet, "chart": chart_path})
