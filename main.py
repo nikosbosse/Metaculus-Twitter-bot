@@ -14,7 +14,7 @@ def post_tweet(event="", context=""):
     for tweet in tweets:
         try:
             if tweet:
-                api.create_tweet(text=tweet)
+                api.update_status_with_media(status=tweet["text"], filename = tweet["chart"])
                 print("")
                 print(tweet)
                 time.sleep(10)
