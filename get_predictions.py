@@ -1,4 +1,5 @@
 import datetime
+import re
 import requests
 import tempfile
 import yaml
@@ -46,7 +47,7 @@ class predictions:
             return False
         return True
 
-    def make_chart(self, df, title):
+    def make_chart(self, df, title_short):
         if df.time.min() < self.create_threshold(24 * 365.2425):
             date_format = "%B %Y"
         elif df.time.min() > self.create_threshold(24 * 5):
@@ -61,13 +62,13 @@ class predictions:
             color=("#61676D", "#AEB1B4", "#61676D"),
             linewidth=2,
             ylim=(0, 1),
-            title=title,
             xlabel="",
             ylabel="Metaculus community prediction",
             legend=False,
             fontsize=12,
             figsize=(14, 8),
         )
+        ax.set_title(title_short, fontsize=18)
         ax.set_facecolor("#282F37")
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
         ax.xaxis.set_major_formatter(DateFormatter(date_format))
@@ -85,7 +86,15 @@ class predictions:
         return filepath
 
     def add_tweet(
-        self, df, last_prediction, current_prediction, change, elapsed, title, url
+        self,
+        df,
+        last_prediction,
+        current_prediction,
+        change,
+        elapsed,
+        title,
+        title_short,
+        url,
     ):
         has_increased = change > 0
         arrow = "⬆️" if has_increased else "⬇️"
@@ -100,7 +109,7 @@ class predictions:
         tweet += f"\n{change_formatted} in the last {elapsed} hours"
         tweet += f"\nhttps://www.metaculus.com{url}"
 
-        chart_path = self.make_chart(df, title)
+        chart_path = self.make_chart(df, title_short)
         self.tweets.append({"text": tweet, "chart": chart_path})
         print("Tweet added!")
 
@@ -113,7 +122,10 @@ class predictions:
             question_url = "https://www.metaculus.com/api2/questions/" + str(id)
             data = requests.get(question_url).json()
 
-            title = data["title"]
+            # clean Metaculus' titles
+            title = re.sub("\s+", " ", data["title"])
+            title_short = re.sub("\s+", " ", data["title_short"])
+
             print(f"{id} - {title}")
 
             if self.is_question_included(data):
