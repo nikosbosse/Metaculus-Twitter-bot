@@ -14,13 +14,37 @@ class predictions:
     def __init__(self):
         with open(CONFIG_FILE) as file:
             self.config = yaml.load(file, Loader=yaml.FullLoader)
-        self.question_ids = self.config["questions"]
+        self.projects = self.config["projects"]
+        self.questions = self.config["questions"]
         self.filters = self.config["filters"]
         self.thresholds = self.config["thresholds"]
         self.tweets = []
 
+    def get_question_ids(self):
+        ids = set(self.questions)
+        for project in self.projects:
+            question_list = requests.get(
+                f"https://www.metaculus.com/api2/questions/?project={project}&status=open&type=forecast&limit=999"
+            ).json()["results"]
+            ids = ids.union([q["id"] for q in question_list])
+        return sorted(list(ids))
+
     def create_threshold(self, hours):
-        return datetime.datetime.now() - datetime.timedelta(hours=hours)
+        return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
+
+    def is_question_included(self, data):
+        if pd.to_datetime(
+            data["publish_time"].replace("Z", "")
+        ) > self.create_threshold(hours=self.filters["minimum_hours"]):
+            print("Question skipped (too recent)")
+            return False
+        if data["number_of_predictions"] < self.filters["minimum_forecasts"]:
+            print("Question skipped (too few forecasts)")
+            return False
+        if data["possibilities"]["type"] not in self.filters["types"]:
+            print("Question skipped (type not handled)")
+            return False
+        return True
 
     def make_chart(self, df, title):
         if df.time.min() < self.create_threshold(24 * 365.2425):
@@ -82,50 +106,45 @@ class predictions:
 
     def get(self):
 
+        question_ids = self.get_question_ids()
+
         # for every question, get past community predictions and compare whether there has been a significant change
-        for id in self.question_ids:
+        for id in question_ids:
             question_url = "https://www.metaculus.com/api2/questions/" + str(id)
             data = requests.get(question_url).json()
 
             title = data["title"]
             print(f"{id} - {title}")
-            timeseries = data["community_prediction"]["history"]
 
-            df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
-            df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
-            df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
+            if self.is_question_included(data):
+                timeseries = data["community_prediction"]["history"]
+                df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
+                df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
+                df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
 
-            # convert timestamps to datetime
-            df["time"] = pd.to_datetime(df.time, unit="s")
+                # convert timestamps to datetime
+                df["time"] = pd.to_datetime(df.time, unit="s")
 
-            # check filters: does the question qualify?
-            minimum_time = self.create_threshold(hours=self.filters["minimum_hours"])
-            if (
-                df.time.min() > minimum_time
-                or data["number_of_predictions"] < self.filters["minimum_forecasts"]
-            ):
-                print("Question skipped")
-                next
+                # save current prediction
+                current_prediction = df.prediction.values[-1]
 
-            # save current prediction
-            current_prediction = df.prediction.values[-1]
+                # identify large swings
+                for threshold in self.thresholds:
+                    time_limit = self.create_threshold(hours=threshold["hours"])
+                    last_prediction = df[df.time < time_limit].prediction.values[-1]
+                    change = current_prediction - last_prediction
 
-            # identify large swings
-            for threshold in self.thresholds:
-                time_limit = self.create_threshold(hours=threshold["hours"])
-                last_prediction = df[df.time < time_limit].prediction.values[-1]
-                change = current_prediction - last_prediction
-
-                if abs(change) > threshold["swing"]:
-                    self.add_tweet(
-                        df=df,
-                        last_prediction=last_prediction,
-                        current_prediction=current_prediction,
-                        change=change,
-                        elapsed=threshold["hours"],
-                        title=title,
-                        url=data["page_url"],
-                    )
-                    break
+                    if abs(change) > threshold["swing"]:
+                        self.add_tweet(
+                            df=df,
+                            last_prediction=last_prediction,
+                            current_prediction=current_prediction,
+                            change=change,
+                            elapsed=threshold["hours"],
+                            title=data["title"],
+                            title_short=data["title_short"],
+                            url=data["page_url"],
+                        )
+                        break
 
         return self.tweets
