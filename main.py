@@ -18,7 +18,7 @@ def post_tweet(event="", context=""):
                 api.update_status_with_media(status=tweet["text"], filename = tweet["chart"])
                 print("")
                 print(tweet)
-                time.sleep(5)
+                time.sleep(10)
         except Exception as e:
             raise e
 
