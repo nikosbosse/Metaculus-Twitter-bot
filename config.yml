@@ -7,9 +7,9 @@ questions:
   - 2797
   - 9743
 
-# Questions that don't meet these criteria will be excluded
+# After fetching all questions above, the ones that don't meet these criteria will be excluded
 filters:
-  minimum_hours: 24 # Minimum number of hours since first forecast
+  minimum_hours: 24 # Minimum number of hours since publishing
   minimum_forecasts: 10 # Minimum number of forecasts made
   types: # Types of questions handled by the bot
     - binary
