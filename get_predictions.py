@@ -79,7 +79,7 @@ class predictions:
         ax.xaxis.set_major_formatter(DateFormatter(date_format))
         ax.grid("on", axis="y", linewidth=0.2)
 
-        with tempfile.NamedTemporaryFile(mode="wb", dir=".") as png:
+        with tempfile.NamedTemporaryFile(mode="wb", dir="/tmp") as png:
             filepath = f"{png.name}.png"
             ax.get_figure().savefig(
                 filepath,

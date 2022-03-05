@@ -6,8 +6,9 @@ gcloud functions delete metaculus-alert \
 gcloud functions deploy metaculus-alert \
     --project=metaculus-alert \
     --trigger-topic metaculus-alert \
-    --memory=256MB \
+    --memory=512MB \
     --env-vars-file .env.yaml \
     --region=us-central1 \
     --runtime python39 \
-    --entry-point=post_tweet
+    --entry-point=post_tweet \
+    --timeout=300
