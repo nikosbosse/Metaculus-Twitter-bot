@@ -61,10 +61,10 @@ class predictions:
             y=["lower", "prediction", "upper"],
             kind="line",
             color=(
-                [38/255, 40/255, 43/255, 0.8], # "#61676D", 
-                "#AEB1B4", 
-                [38/255, 40/255, 43/255, 0.8], # "#61676D", # "#61676D"
-                ),
+                [38 / 255, 40 / 255, 43 / 255, 0.8],  # "#61676D",
+                "#AEB1B4",
+                [38 / 255, 40 / 255, 43 / 255, 0.8],  # "#61676D", # "#61676D"
+            ),
             linewidth=2,
             ylim=(0, 1),
             xlabel="",
@@ -85,7 +85,7 @@ class predictions:
                 filepath,
                 bbox_inches="tight",
                 dpi=300,
-                facecolor= "white", #'none' maybe?
+                facecolor="white",  #'none' maybe?
                 transparent=False,
             )
         return filepath
@@ -106,7 +106,7 @@ class predictions:
         added_sign = "+" if has_increased else ""
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
-        last_pred_formatted = str(round(last_prediction * 100)) + "%"
+        # last_pred_formatted = str(round(last_prediction * 100)) + "%"
         change_formatted = f"{added_sign}{round(change * 100)}%"
 
         tweet = f"{title}"
@@ -158,8 +158,8 @@ class predictions:
                             current_prediction=current_prediction,
                             change=change,
                             elapsed=threshold["hours"],
-                            title=data["title"],
-                            title_short=data["title_short"],
+                            title=title,
+                            title_short=title_short,
                             url=data["page_url"],
                         )
                         break
