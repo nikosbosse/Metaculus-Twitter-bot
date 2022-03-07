@@ -1,4 +1,4 @@
-# Twitter Bot to track updates in Metaculus questions
+# [Twitter Bot](https://twitter.com/MetaculusAlert) to track updates in Metaculus questions
 
 This bot monitors some Metaculus questions and posts a tweet when the predictions have changed significantly. 
 
