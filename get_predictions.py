@@ -3,7 +3,6 @@ import re
 import requests
 import tempfile
 import yaml
-import numpy as np
 
 from matplotlib.dates import DateFormatter
 import matplotlib.ticker as mtick
@@ -93,7 +92,6 @@ class predictions:
     def add_tweet(
         self,
         df,
-        last_prediction,
         current_prediction,
         change,
         elapsed,
@@ -106,7 +104,6 @@ class predictions:
         added_sign = "+" if has_increased else ""
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
-        # last_pred_formatted = str(round(last_prediction * 100)) + "%"
         change_formatted = f"{added_sign}{round(change * 100)}%"
 
         tweet = f"{title}"
@@ -154,7 +151,6 @@ class predictions:
                     if abs(change) > threshold["swing"]:
                         self.add_tweet(
                             df=df,
-                            last_prediction=last_prediction,
                             current_prediction=current_prediction,
                             change=change,
                             elapsed=threshold["hours"],
