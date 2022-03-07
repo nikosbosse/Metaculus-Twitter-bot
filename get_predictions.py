@@ -2,7 +2,6 @@ import datetime
 import re
 import requests
 import tempfile
-import yaml
 
 from matplotlib.dates import DateFormatter
 from matplotlib.pyplot import style
@@ -13,13 +12,12 @@ CONFIG_FILE = "config.yml"
 
 
 class predictions:
-    def __init__(self):
-        with open(CONFIG_FILE) as file:
-            self.config = yaml.load(file, Loader=yaml.FullLoader)
-        self.projects = self.config["projects"]
-        self.questions = self.config["questions"]
-        self.filters = self.config["filters"]
-        self.thresholds = self.config["thresholds"]
+    def __init__(self, config, recent_alerts):
+        self.projects = config["projects"]
+        self.questions = config["questions"]
+        self.filters = config["filters"]
+        self.thresholds = config["thresholds"]
+        self.recent_alerts = recent_alerts
         self.tweets = []
 
     def get_question_ids(self):
@@ -34,7 +32,10 @@ class predictions:
     def create_threshold(self, hours):
         return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
 
-    def is_question_included(self, data):
+    def is_question_included(self, title, data):
+        if title in self.recent_alerts:
+            print("Question skipped (recent alert)")
+            return False
         if pd.to_datetime(
             data["publish_time"].replace("Z", "")
         ) > self.create_threshold(hours=self.filters["minimum_hours"]):
@@ -139,7 +140,7 @@ class predictions:
 
             print(f"{id} - {title}")
 
-            if self.is_question_included(data):
+            if self.is_question_included(title, data):
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
                 df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
