@@ -5,6 +5,7 @@ import tempfile
 import yaml
 
 from matplotlib.dates import DateFormatter
+from matplotlib.pyplot import style
 import matplotlib.ticker as mtick
 import pandas as pd
 
@@ -55,14 +56,15 @@ class predictions:
         else:
             date_format = "%-d %b"
 
+        style.use("dark_background")  # Sets all text and lines to white
         ax = df.plot(
             x="time",
             y=["lower", "prediction", "upper"],
             kind="line",
             color=(
-                [38 / 255, 40 / 255, 43 / 255, 0.8],  # "#61676D",
+                [110 / 255, 116 / 255, 127 / 255, 0.8],  # "#61676D",
                 "#AEB1B4",
-                [38 / 255, 40 / 255, 43 / 255, 0.8],  # "#61676D", # "#61676D"
+                [110 / 255, 116 / 255, 127 / 255, 0.8],  # "#61676D", # "#61676D"
             ),
             linewidth=2,
             ylim=(0, 1),
@@ -74,17 +76,24 @@ class predictions:
         )
         ax.set_title(title_short, fontsize=18)
         ax.set_facecolor("#282F37")
+        ax.fill_between(df["time"], df["lower"], df["upper"], color="w", alpha=0.1)
+
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
         ax.xaxis.set_major_formatter(DateFormatter(date_format))
+
         ax.grid("on", axis="y", linewidth=0.2)
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.margins(x=0)
 
         with tempfile.NamedTemporaryFile(mode="wb", dir="/tmp") as png:
             filepath = f"{png.name}.png"
             ax.get_figure().savefig(
                 filepath,
                 bbox_inches="tight",
+                pad_inches=0.2,
                 dpi=300,
-                facecolor="white",  #'none' maybe?
+                facecolor="#282F37",  #'none' maybe?
                 transparent=False,
             )
         return filepath
