@@ -1,12 +1,41 @@
+import datetime
+import re
 import time
+import yaml
 
 from create_api import create_api
 from get_predictions import predictions
 
+
+def get_config():
+    with open("config.yml") as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+    return config
+
+
+def get_recent_alerts(api, no_duplicate_period):
+    tweets = api.user_timeline(screen_name="MetaculusAlert")
+    threshold = datetime.datetime.utcnow() - datetime.timedelta(
+        hours=no_duplicate_period
+    )
+    titles = []
+    for tweet in tweets:
+        if tweet.created_at.replace(tzinfo=None) < threshold:
+            break
+        titles.append(re.search(r"^([^\n]+)", tweet.text).group(0))
+    return titles
+
+
 def post_tweet(event="", context=""):
+    config = get_config()
+
     api = create_api()
     print("API created")
-    p = predictions()
+
+    recent_alerts = get_recent_alerts(api, config["filters"]["no_duplicate_period"])
+    print("Fetched recent alerts")
+
+    p = predictions(config, recent_alerts)
     tweets = p.get()
 
     print("---")
@@ -14,7 +43,9 @@ def post_tweet(event="", context=""):
     for tweet in tweets:
         try:
             if tweet:
-                api.update_status_with_media(status=tweet["text"], filename = tweet["chart"])
+                api.update_status_with_media(
+                    status=tweet["text"], filename=tweet["chart"]
+                )
                 print("")
                 print(tweet)
                 time.sleep(10)
