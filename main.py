@@ -14,7 +14,7 @@ def get_config():
 
 
 def get_recent_alerts(api, no_duplicate_period):
-    tweets = api.user_timeline(screen_name="metaculusalert")
+    tweets = api.user_timeline(screen_name="MetaculusAlert")
     threshold = datetime.datetime.utcnow() - datetime.timedelta(
         hours=no_duplicate_period
     )
@@ -32,7 +32,7 @@ def post_tweet(event="", context=""):
     api = create_api()
     print("API created")
 
-    recent_alerts = get_recent_alerts(config["filters"]["no_duplicate_period"])
+    recent_alerts = get_recent_alerts(api, config["filters"]["no_duplicate_period"])
     print("Fetched recent alerts")
 
     p = predictions(config, recent_alerts)
