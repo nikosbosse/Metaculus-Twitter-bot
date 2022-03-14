@@ -8,6 +8,8 @@ questions:
   - 2797
   - 8855
   - 9743
+  - 9969
+  - 10008
 
 # After fetching all questions above, the ones that don't meet these criteria will be excluded
 filters:
