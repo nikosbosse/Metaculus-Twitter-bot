@@ -1,3 +1,4 @@
+from calendar import c
 import datetime
 import re
 import requests
@@ -146,7 +147,11 @@ class predictions:
             if self.is_question_included(title, data):
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
-                df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
+                try: 
+                    df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
+                except Exception: 
+                    print(f"ERROR: Unknown error with question: {id} - {title}")
+                    continue
                 df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
 
                 # convert timestamps to datetime
