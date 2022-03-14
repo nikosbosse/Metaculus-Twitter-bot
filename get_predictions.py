@@ -47,6 +47,9 @@ class predictions:
         if data["possibilities"]["type"] not in self.filters["types"]:
             print("Question skipped (type not handled)")
             return False
+        if len(data["community_prediction"]["history"]) == 0:
+            print("Question skipped (timeseries is empty)")
+            return False
         return True
 
     def make_chart(self, df, title_short):
