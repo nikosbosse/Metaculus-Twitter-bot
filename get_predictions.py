@@ -37,11 +37,6 @@ class predictions:
         if title in self.recent_alerts:
             print("Question skipped (recent alert)")
             return False
-        if pd.to_datetime(
-            data["publish_time"].replace("Z", "")
-        ) > self.create_threshold(hours=self.filters["minimum_hours"]):
-            print("Question skipped (too recent)")
-            return False
         if data["number_of_predictions"] < self.filters["minimum_forecasts"]:
             print("Question skipped (too few forecasts)")
             return False
@@ -105,6 +100,7 @@ class predictions:
 
     def add_tweet(
         self,
+        alert_type,
         df,
         current_prediction,
         change,
@@ -113,16 +109,24 @@ class predictions:
         title_short,
         url,
     ):
-        has_increased = change > 0
-        arrow = "⬆️" if has_increased else "⬇️"
-        added_sign = "+" if has_increased else ""
+
+        if alert_type == "Swing":
+            has_increased = change > 0
+            arrow = "⬆️" if has_increased else "⬇️"
+            added_sign = "+" if has_increased else ""
+
+            change_formatted = f"{added_sign}{round(change * 100)}%"
+
+            alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+        
+        if alert_type == "New":
+            alert_text = f"\nNew question\n"
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
-        change_formatted = f"{added_sign}{round(change * 100)}%"
 
         tweet = f"{title}"
         tweet += f"\n\nCommunity prediction: {current_pred_formatted}"
-        tweet += f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+        tweet += alert_text
         tweet += f"https://www.metaculus.com{url}"
 
         chart_path = self.make_chart(df, title_short)
@@ -160,14 +164,13 @@ class predictions:
                 # save current prediction
                 current_prediction = df.prediction.values[-1]
 
-                # identify large swings
-                for threshold in self.thresholds:
-                    time_limit = self.create_threshold(hours=threshold["hours"])
-                    last_prediction = df[df.time < time_limit].prediction.values[-1]
-                    change = current_prediction - last_prediction
+                # check if question is new and add tweet if so
+                if pd.to_datetime(data["publish_time"].replace("Z", "")) > \
+                    self.create_threshold(hours=self.filters["minimum_hours"]
+                    ):
 
-                    if abs(change) > threshold["swing"]:
-                        self.add_tweet(
+                    self.add_tweet(
+                            alert_type="New",
                             df=df,
                             current_prediction=current_prediction,
                             change=change,
@@ -176,6 +179,25 @@ class predictions:
                             title_short=title_short,
                             url=data["page_url"],
                         )
-                        break
+
+                else:
+                    # identify large swings
+                    for threshold in self.thresholds:
+                        time_limit = self.create_threshold(hours=threshold["hours"])
+                        last_prediction = df[df.time < time_limit].prediction.values[-1]
+                        change = current_prediction - last_prediction
+
+                        if abs(change) > threshold["swing"]:
+                            self.add_tweet(
+                                alert_type="Swing",
+                                df=df,
+                                current_prediction=current_prediction,
+                                change=change,
+                                elapsed=threshold["hours"],
+                                title=title,
+                                title_short=title_short,
+                                url=data["page_url"],
+                            )
+                            break
 
         return self.tweets
