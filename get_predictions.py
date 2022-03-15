@@ -120,7 +120,7 @@ class predictions:
             alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
         
         if alert_type == "New":
-            alert_text = f"\nNew question\n"
+            alert_text = f"\n🆕 New question\n"
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
