@@ -13,6 +13,7 @@ questions:
   - 10008
 
 # After fetching all questions above, the ones that don't meet these criteria will be excluded
+# If a question meets all criteria except minimum_hours, then a "New question" alert is sent
 filters:
   minimum_hours: 48 # Minimum number of hours since publishing
   minimum_forecasts: 10 # Minimum number of forecasts made
