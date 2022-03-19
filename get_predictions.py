@@ -112,16 +112,14 @@ class predictions:
         url,
     ):
 
-        if alert_type == "Swing":
+        if alert_type == "swing":
             has_increased = change > 0
             arrow = "⬆️" if has_increased else "⬇️"
             added_sign = "+" if has_increased else ""
-
             change_formatted = f"{added_sign}{round(change * 100)}%"
-
             alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
 
-        if alert_type == "New":
+        elif alert_type == "swing":
             alert_text = f"\n🆕 New question\n"
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
@@ -172,7 +170,7 @@ class predictions:
                 ) > self.create_threshold(hours=self.filters["minimum_hours"]):
 
                     self.add_tweet(
-                        alert_type="New",
+                        alert_type="new",
                         df=df,
                         current_prediction=current_prediction,
                         change=change,
@@ -191,7 +189,7 @@ class predictions:
 
                         if abs(change) > threshold["swing"]:
                             self.add_tweet(
-                                alert_type="Swing",
+                                alert_type="swing",
                                 df=df,
                                 current_prediction=current_prediction,
                                 change=change,
