@@ -30,7 +30,7 @@ class predictions:
             ids = ids.union([q["id"] for q in question_list])
         return sorted(list(ids))
 
-    def create_threshold(self, hours):
+    def hours_ago(self, hours):
         return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
 
     def is_question_included(self, title, data):
@@ -51,9 +51,9 @@ class predictions:
         return True
 
     def make_chart(self, df, title_short):
-        if df.time.min() < self.create_threshold(24 * 365.2425):
+        if df.time.min() < self.hours_ago(24 * 365.2425):
             date_format = "%B %Y"
-        elif df.time.min() > self.create_threshold(24 * 5):
+        elif df.time.min() > self.hours_ago(24 * 5):
             date_format = "%-d %b %H:%M"
         else:
             date_format = "%-d %b"
@@ -167,7 +167,7 @@ class predictions:
                 # check if question is new and add tweet if so
                 if pd.to_datetime(
                     data["publish_time"].replace("Z", "")
-                ) > self.create_threshold(hours=self.filters["no_duplicate_period"]):
+                ) > self.hours_ago(hours=self.filters["no_duplicate_period"]):
 
                     self.add_tweet(
                         alert_type="new",
@@ -182,10 +182,10 @@ class predictions:
 
                 elif pd.to_datetime(
                     data["publish_time"].replace("Z", "")
-                ) < self.create_threshold(hours=self.filters["minimum_hours"]):
+                ) < self.hours_ago(hours=self.filters["minimum_hours"]):
                     # identify large swings
                     for threshold in self.thresholds:
-                        time_limit = self.create_threshold(hours=threshold["hours"])
+                        time_limit = self.hours_ago(hours=threshold["hours"])
                         last_prediction = df[df.time < time_limit].prediction.values[-1]
                         change = current_prediction - last_prediction
 
