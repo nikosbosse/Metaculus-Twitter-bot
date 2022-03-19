@@ -41,7 +41,9 @@ class predictions:
             print("Question skipped (too few forecasts)")
             return False
         if data["possibilities"]["type"] not in self.filters["types"]:
-            print("Question skipped (type not handled)")
+            print(
+                f"Question skipped (type {data['possibilities']['type']} not handled)"
+            )
             return False
         if len(data["community_prediction"]["history"]) == 0:
             print("Question skipped (timeseries is empty)")
@@ -118,7 +120,7 @@ class predictions:
             change_formatted = f"{added_sign}{round(change * 100)}%"
 
             alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
-        
+
         if alert_type == "New":
             alert_text = f"\n🆕 New question\n"
 
@@ -151,9 +153,9 @@ class predictions:
             if self.is_question_included(title, data):
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
-                try: 
+                try:
                     df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series)
-                except Exception: 
+                except Exception:
                     print(f"ERROR: Unknown error with question: {id} - {title}")
                     continue
                 df = df.drop(columns=["x1"]).rename(columns={"t": "time"})
@@ -165,20 +167,20 @@ class predictions:
                 current_prediction = df.prediction.values[-1]
 
                 # check if question is new and add tweet if so
-                if pd.to_datetime(data["publish_time"].replace("Z", "")) > \
-                    self.create_threshold(hours=self.filters["minimum_hours"]
-                    ):
+                if pd.to_datetime(
+                    data["publish_time"].replace("Z", "")
+                ) > self.create_threshold(hours=self.filters["minimum_hours"]):
 
                     self.add_tweet(
-                            alert_type="New",
-                            df=df,
-                            current_prediction=current_prediction,
-                            change=change,
-                            elapsed=threshold["hours"],
-                            title=title,
-                            title_short=title_short,
-                            url=data["page_url"],
-                        )
+                        alert_type="New",
+                        df=df,
+                        current_prediction=current_prediction,
+                        change=change,
+                        elapsed=threshold["hours"],
+                        title=title,
+                        title_short=title_short,
+                        url=data["page_url"],
+                    )
 
                 else:
                     # identify large swings
