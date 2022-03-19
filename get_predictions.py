@@ -167,7 +167,7 @@ class predictions:
                 # check if question is new and add tweet if so
                 if pd.to_datetime(
                     data["publish_time"].replace("Z", "")
-                ) > self.create_threshold(hours=self.filters["minimum_hours"]):
+                ) > self.create_threshold(hours=self.filters["no_duplicate_period"]):
 
                     self.add_tweet(
                         alert_type="new",
@@ -180,7 +180,9 @@ class predictions:
                         url=data["page_url"],
                     )
 
-                else:
+                elif pd.to_datetime(
+                    data["publish_time"].replace("Z", "")
+                ) < self.create_threshold(hours=self.filters["minimum_hours"]):
                     # identify large swings
                     for threshold in self.thresholds:
                         time_limit = self.create_threshold(hours=threshold["hours"])
