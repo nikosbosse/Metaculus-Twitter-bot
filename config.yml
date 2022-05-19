@@ -27,3 +27,5 @@ filters:
 thresholds:
   - hours: 24
     swing: 0.1
+  - hours: 48
+    swing: 0.1
