@@ -25,7 +25,5 @@ filters:
 # - absolute change of >5% in the last 5 hours
 # - absolute change of >10% in the last 24 hours
 thresholds:
-  - hours: 5
-    swing: 0.05
   - hours: 24
     swing: 0.1
