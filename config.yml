@@ -2,6 +2,7 @@
 # All questions in these projects will be included
 projects:
   - 1426
+  - 1683
 # All questions below will be included
 questions:
   - 2534
@@ -25,7 +26,7 @@ filters:
 # - absolute change of >5% in the last 5 hours
 # - absolute change of >10% in the last 24 hours
 thresholds:
-  - hours: 5
-    swing: 0.05
   - hours: 24
     swing: 0.1
+  - hours: 48
+    swing: 0.2
