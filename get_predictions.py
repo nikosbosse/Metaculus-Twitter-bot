@@ -173,7 +173,7 @@ class predictions:
                         alert_type="new",
                         df=df,
                         current_prediction=current_prediction,
-                        change=change,
+                        change=None,
                         elapsed=threshold["hours"],
                         title=title,
                         title_short=title_short,
