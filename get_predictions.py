@@ -119,7 +119,7 @@ class predictions:
             change_formatted = f"{added_sign}{round(change * 100)}%"
             alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
 
-        elif alert_type == "swing":
+        elif alert_type == "new":
             alert_text = f"\n🆕 New question\n"
 
         current_pred_formatted = str(round(current_prediction * 100)) + "%"
