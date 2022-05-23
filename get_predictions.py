@@ -259,9 +259,10 @@ class predictions:
 
                         if prediction_type == "binary":
                             change = current_prediction - last_prediction
+                            if not abs(change) > threshold["swing"]:
+                                continue
 
                         elif prediction_type == "continuous":
-
                             if not current_prediction > (
                                 last_prediction
                                 + threshold["swing_continuous"]
@@ -275,18 +276,18 @@ class predictions:
 
                             change = current_prediction - last_prediction
 
-                        if abs(change) > threshold["swing"]:
-                            self.add_tweet(
-                                alert_type="swing",
-                                df=df,
-                                current_prediction=current_prediction,
-                                change=change,
-                                prediction_type=prediction_type,
-                                elapsed=threshold["hours"],
-                                title=title,
-                                title_short=title_short,
-                                url=data["page_url"],
-                            )
-                            break
+                        # add tweet if loop executed until here
+                        self.add_tweet(
+                            alert_type="swing",
+                            df=df,
+                            current_prediction=current_prediction,
+                            change=change,
+                            prediction_type=prediction_type,
+                            elapsed=threshold["hours"],
+                            title=title,
+                            title_short=title_short,
+                            url=data["page_url"],
+                        )
+                        break
 
         return self.tweets
