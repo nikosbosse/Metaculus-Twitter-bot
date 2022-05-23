@@ -33,14 +33,14 @@ class predictions:
     def hours_ago(self, hours):
         return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
 
-    def is_question_included(self, title, data):
+    def is_question_included(self, title, data, prediction_type):
         if title in self.recent_alerts:
             print("Question skipped (recent alert)")
             return False
         if data["number_of_predictions"] < self.filters["minimum_forecasts"]:
             print("Question skipped (too few forecasts)")
             return False
-        if data["possibilities"]["type"] not in self.filters["types"]:
+        if prediction_type not in self.filters["types"]:
             print(
                 f"Question skipped (type {data['possibilities']['type']} not handled)"
             )
@@ -173,7 +173,7 @@ class predictions:
 
             print(f"{id} - {title}")
 
-            if self.is_question_included(title, data):
+            if self.is_question_included(title, data, prediction_type):
 
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
@@ -237,9 +237,7 @@ class predictions:
 
                         if len(df[df.time < time_limit]) == 0:
                             print(
-                                "Couldn't do comparison for"
-                                + title
-                                + "- no prior forecast available"
+                                f"Couldn't do comparison for {title} - no prior forecast available"
                             )
                             continue
 
@@ -251,7 +249,8 @@ class predictions:
                             change = current_prediction - last_prediction
 
                         elif prediction_type == "continuous":
-                            trigger = current_prediction > (
+
+                            if not current_prediction > (
                                 last_prediction
                                 + 2
                                 * threshold["swing"]
@@ -261,9 +260,7 @@ class predictions:
                                 + 2
                                 * threshold["swing"]
                                 * (last_prediction_25 - last_prediction)
-                            )
-
-                            if not trigger:
+                            ):
                                 continue
 
                             change = current_prediction - last_prediction
