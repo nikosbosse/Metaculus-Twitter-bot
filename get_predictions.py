@@ -130,7 +130,7 @@ class predictions:
             current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
             if prediction_type == "continuous":
-                change_formatted = f"{added_sign}{round(current_prediction, 2)}"
+                change_formatted = f"{added_sign}{round(change, 2)}"
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
                 )
