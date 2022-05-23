@@ -117,8 +117,8 @@ class predictions:
         url,
     ):
 
-        if prediction_type == "binary":
-            if alert_type == "swing":
+        if alert_type == "swing":
+            if prediction_type == "binary":
                 has_increased = change > 0
                 arrow = "⬆️" if has_increased else "⬇️"
                 added_sign = "+" if has_increased else ""
@@ -129,8 +129,7 @@ class predictions:
 
             current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
-        if prediction_type == "continuous":
-            if alert_type == "swing":
+            if prediction_type == "continuous":
                 has_increased = change > 0
                 arrow = "⬆️" if has_increased else "⬇️"
                 added_sign = "+" if has_increased else ""
