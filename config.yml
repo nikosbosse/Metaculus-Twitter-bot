@@ -29,5 +29,7 @@ filters:
 thresholds:
   - hours: 24
     swing: 0.1
+    swing_continuous: 0.5
   - hours: 48
     swing: 0.2
+    swing_continuous: 1
