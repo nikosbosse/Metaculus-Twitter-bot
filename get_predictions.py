@@ -33,7 +33,7 @@ class predictions:
     def hours_ago(self, hours):
         return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
 
-    def is_question_included(self, title, data, prediction_type):
+    def is_question_included(self, title, data, prediction_type, prediction_format):
         if title in self.recent_alerts:
             print("Question skipped (recent alert)")
             return False
@@ -44,6 +44,9 @@ class predictions:
             print(
                 f"Question skipped (type {data['possibilities']['type']} not handled)"
             )
+            return False
+        if prediction_format == "date":
+            print(f"Question skipped (date format not handled)")
             return False
         if len(data["community_prediction"]["history"]) == 0:
             print("Question skipped (timeseries is empty)")
@@ -170,10 +173,12 @@ class predictions:
             title = re.sub("\s+", " ", data["title"])
             title_short = re.sub("\s+", " ", data["title_short"])
             prediction_type = data["possibilities"]["type"]
+            prediction_format = data["possibilities"].get("format")
 
             print(f"{id} - {title}")
-
-            if self.is_question_included(title, data, prediction_type):
+            if self.is_question_included(
+                title, data, prediction_type, prediction_format
+            ):
 
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
