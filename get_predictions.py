@@ -162,9 +162,9 @@ class predictions:
         if deriv_ratio == 1:
             value = lower_bound + (upper_bound - lower_bound) * prediction
         else:
-            value = lower_bound + (upper_bound - lower_bound) / (deriv_ratio - 1) * (
-                deriv_ratio**prediction
-            )
+            value = lower_bound + (upper_bound - lower_bound) * (
+                deriv_ratio**prediction - 1
+            ) / (deriv_ratio - 1)
         return value
 
     def get(self):
