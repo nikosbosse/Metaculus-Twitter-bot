@@ -77,7 +77,7 @@ class predictions:
             figsize=(14, 8),
         )
 
-        if (prediction_type == "binary"):
+        if prediction_type == "binary":
             ax.set_ylim([0, 1])
             ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
@@ -123,7 +123,9 @@ class predictions:
                 arrow = "⬆️" if has_increased else "⬇️"
                 added_sign = "+" if has_increased else ""
                 change_formatted = f"{added_sign}{round(change * 100)}%"
-                alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+                alert_text = (
+                    f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+                )
 
             current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
@@ -133,14 +135,14 @@ class predictions:
                 arrow = "⬆️" if has_increased else "⬇️"
                 added_sign = "+" if has_increased else ""
                 change_formatted = f"{added_sign}{round(current_prediction, 2)}"
-                alert_text = f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+                alert_text = (
+                    f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
+                )
 
-            current_pred_formatted = str(round(current_prediction, 2))                
+            current_pred_formatted = str(round(current_prediction, 2))
 
         if alert_type == "new":
             alert_text = f"\n🆕 New question\n"
-
-        
 
         tweet = f"{title}"
         tweet += f"\n\nCommunity prediction: {current_pred_formatted}"
@@ -151,15 +153,15 @@ class predictions:
         self.tweets.append({"text": tweet, "chart": chart_path})
         print("Tweet added!")
 
-
-     # recover actual predicted values from the transformed values between 0 and 1
+    # recover actual predicted values from the transformed values between 0 and 1
     def recover_values(self, prediction, lower_bound, upper_bound, deriv_ratio):
         if deriv_ratio == 1:
             value = lower_bound + (upper_bound - lower_bound) * prediction
-        else: 
-            value = lower_bound + (upper_bound - lower_bound) / (deriv_ratio - 1)  * (deriv_ratio ** prediction)
+        else:
+            value = lower_bound + (upper_bound - lower_bound) / (deriv_ratio - 1) * (
+                deriv_ratio**prediction
+            )
         return value
-
 
     def get(self):
 
@@ -181,10 +183,12 @@ class predictions:
 
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
-                
+
                 # convert to timeseries, works for binary as well as continuous
                 try:
-                    df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series).iloc[:, 0:3]
+                    df[["lower", "prediction", "upper"]] = df.x1.apply(pd.Series).iloc[
+                        :, 0:3
+                    ]
                 except Exception:
                     print(f"ERROR: Unknown error with question: {id} - {title}")
                     continue
@@ -193,20 +197,23 @@ class predictions:
                 # convert timestamps to datetime
                 df["time"] = pd.to_datetime(df.time, unit="s")
 
-                if (prediction_type == "continuous"):
+                if prediction_type == "continuous":
                     lower_bound = data["possibilities"]["scale"]["min"]
                     upper_bound = data["possibilities"]["scale"]["max"]
                     deriv_ratio = data["possibilities"]["scale"]["deriv_ratio"]
 
-                    df[["lower", "prediction", "upper"]] = \
-                        df[["lower", "prediction", "upper"]].apply(
-                                lambda x: self.recover_values(
-                                x, lower_bound=lower_bound, 
-                                upper_bound=upper_bound, deriv_ratio=deriv_ratio
-                                ), 
-                            axis = 1  
-                        )
-                
+                    df[["lower", "prediction", "upper"]] = df[
+                        ["lower", "prediction", "upper"]
+                    ].apply(
+                        lambda x: self.recover_values(
+                            x,
+                            lower_bound=lower_bound,
+                            upper_bound=upper_bound,
+                            deriv_ratio=deriv_ratio,
+                        ),
+                        axis=1,
+                    )
+
                 # save current prediction
                 current_prediction = df.prediction.values[-1]
 
@@ -234,23 +241,35 @@ class predictions:
                     for threshold in self.thresholds:
                         time_limit = self.hours_ago(hours=threshold["hours"])
 
-                        if (len(df[df.time < time_limit]) == 0):
-                            print("Couldn't do comparison for" + title + "- no prior forecast available")
+                        if len(df[df.time < time_limit]) == 0:
+                            print(
+                                "Couldn't do comparison for"
+                                + title
+                                + "- no prior forecast available"
+                            )
                             continue
 
                         last_prediction = df[df.time < time_limit].prediction.values[-1]
                         last_prediction_25 = df[df.time < time_limit].lower.values[-1]
                         last_prediction_75 = df[df.time < time_limit].upper.values[-1]
 
-                        if (prediction_type == "binary"): 
+                        if prediction_type == "binary":
                             change = current_prediction - last_prediction
 
-                        elif (prediction_type == "continuous"):
-                            trigger = \
-                            current_prediction > (last_prediction + 2 * threshold["swing"] * (last_prediction_75 - last_prediction)) or \
-                            current_prediction < (last_prediction + 2 * threshold["swing"] * (last_prediction_25 - last_prediction))
+                        elif prediction_type == "continuous":
+                            trigger = current_prediction > (
+                                last_prediction
+                                + 2
+                                * threshold["swing"]
+                                * (last_prediction_75 - last_prediction)
+                            ) or current_prediction < (
+                                last_prediction
+                                + 2
+                                * threshold["swing"]
+                                * (last_prediction_25 - last_prediction)
+                            )
 
-                            if (not trigger):
+                            if not trigger:
                                 continue
 
                             change = current_prediction - last_prediction
@@ -261,7 +280,7 @@ class predictions:
                                 df=df,
                                 current_prediction=current_prediction,
                                 change=change,
-                                prediction_type = prediction_type,
+                                prediction_type=prediction_type,
                                 elapsed=threshold["hours"],
                                 title=title,
                                 title_short=title_short,
