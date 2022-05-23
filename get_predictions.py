@@ -117,10 +117,11 @@ class predictions:
     ):
 
         if alert_type == "swing":
+            has_increased = change > 0
+            arrow = "⬆️" if has_increased else "⬇️"
+            added_sign = "+" if has_increased else ""
+
             if prediction_type == "binary":
-                has_increased = change > 0
-                arrow = "⬆️" if has_increased else "⬇️"
-                added_sign = "+" if has_increased else ""
                 change_formatted = f"{added_sign}{round(change * 100)}%"
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
@@ -129,9 +130,6 @@ class predictions:
             current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
             if prediction_type == "continuous":
-                has_increased = change > 0
-                arrow = "⬆️" if has_increased else "⬇️"
-                added_sign = "+" if has_increased else ""
                 change_formatted = f"{added_sign}{round(current_prediction, 2)}"
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
