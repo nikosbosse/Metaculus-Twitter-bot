@@ -1,7 +1,6 @@
 from calendar import c
 import datetime
 import re
-from xml.dom.expatbuilder import theDOMImplementation
 import requests
 import tempfile
 
