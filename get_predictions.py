@@ -135,9 +135,9 @@ class predictions:
                 if current_prediction <= 100:
                     change_formatted = f"{added_sign}{round(change, 2)}"
                     current_pred_formatted = str(round(current_prediction, 2))
-                elif current_prediction >= 1e7:
-                    change_formatted = f"{added_sign}{int(change / 1e7)} million"
-                    current_pred_formatted = f"{int(current_prediction / 1e7)} million"
+                elif current_prediction >= 1e6:
+                    change_formatted = f"{added_sign}{int(change / 1e6)} million"
+                    current_pred_formatted = f"{int(current_prediction / 1e6)} million"
                 else:
                     change_formatted = f"{added_sign}{int(change)}"
                     current_pred_formatted = str(int(current_prediction))
