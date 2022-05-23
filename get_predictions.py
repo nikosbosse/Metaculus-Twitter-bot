@@ -126,18 +126,16 @@ class predictions:
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
                 )
-
-            current_pred_formatted = str(round(current_prediction * 100)) + "%"
+                current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
             if prediction_type == "continuous":
                 change_formatted = f"{added_sign}{round(change, 2)}"
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
                 )
+                current_pred_formatted = str(round(current_prediction, 2))
 
-            current_pred_formatted = str(round(current_prediction, 2))
-
-        if alert_type == "new":
+        elif alert_type == "new":
             alert_text = f"\n🆕 New question\n"
 
         tweet = f"{title}"
