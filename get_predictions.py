@@ -264,13 +264,11 @@ class predictions:
 
                             if not current_prediction > (
                                 last_prediction
-                                + 2
-                                * threshold["swing"]
+                                + threshold["swing_continuous"]
                                 * (last_prediction_75 - last_prediction)
                             ) or current_prediction < (
                                 last_prediction
-                                + 2
-                                * threshold["swing"]
+                                + threshold["swing_continuous"]
                                 * (last_prediction_25 - last_prediction)
                             ):
                                 continue
