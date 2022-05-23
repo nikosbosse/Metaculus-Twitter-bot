@@ -132,11 +132,18 @@ class predictions:
                 current_pred_formatted = str(round(current_prediction * 100)) + "%"
 
             if prediction_type == "continuous":
-                change_formatted = f"{added_sign}{round(change, 2)}"
+                if current_prediction <= 100:
+                    change_formatted = f"{added_sign}{round(change, 2)}"
+                    current_pred_formatted = str(round(current_prediction, 2))
+                elif current_prediction >= 1e7:
+                    change_formatted = f"{added_sign}{int(change / 1e7)} million"
+                    current_pred_formatted = f"{int(current_prediction / 1e7)} million"
+                else:
+                    change_formatted = f"{added_sign}{int(change)}"
+                    current_pred_formatted = str(int(current_prediction))
                 alert_text = (
                     f"\n{arrow} {change_formatted} in the last {elapsed} hours\n"
                 )
-                current_pred_formatted = str(round(current_prediction, 2))
 
         elif alert_type == "new":
             alert_text = f"\n🆕 New question\n"
