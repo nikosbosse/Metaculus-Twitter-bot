@@ -20,6 +20,7 @@ filters:
   minimum_forecasts: 10 # Minimum number of forecasts made
   types: # Types of questions handled by the bot
     - binary
+    - continuous
   no_duplicate_period: 24 # Number of hours during which a question will be ignored after an alert
 
 # Change thresholds (when at least 1 of these is true, a tweet will be sent)
