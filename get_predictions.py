@@ -1,6 +1,7 @@
 from calendar import c
 import datetime
 import re
+from unittest import skip
 import requests
 import tempfile
 
@@ -179,7 +180,10 @@ class predictions:
             # clean Metaculus' titles
             title = re.sub("\s+", " ", data["title"])
             title_short = re.sub("\s+", " ", data["title_short"])
-            prediction_type = data["possibilities"]["type"]
+            try: 
+                prediction_type = data["possibilities"]["type"]
+            except:
+                next
             prediction_format = data["possibilities"].get("format")
 
             print(f"{id} - {title}")
