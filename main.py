@@ -24,15 +24,17 @@ def get_recent_alerts(no_duplicate_period):
     return recently_tweeted.question_id.values
 
 
-def write_recent_alert(question_id):
-    alerts = pd.read_csv("alerts.csv")
-    new_alert = pd.DataFrame(
+def write_recent_alerts(tweets):
+    old_alerts = pd.read_csv("alerts.csv")
+    new_alerts = pd.DataFrame(
         {
-            "question_id": [question_id],
+            "question_id": [t["question_id"] for t in tweets],
             "last_alert_timestamp": [str(datetime.datetime.utcnow())],
         }
     )
-    alerts = pd.concat([alerts, new_alert]).groupby("question_id", as_index=False).max()
+    alerts = (
+        pd.concat([old_alerts, new_alerts]).groupby("question_id", as_index=False).max()
+    )
     alerts.to_csv("alerts.csv", index=False)
     return True
 
@@ -59,10 +61,10 @@ def post_tweet(event="", context=""):
                 )
                 print("")
                 print(tweet)
-                write_recent_alert(tweet["question_id"])
                 time.sleep(10)
         except Exception as e:
             raise e
+    write_recent_alerts(tweets)
 
 
 if __name__ == "__main__":
