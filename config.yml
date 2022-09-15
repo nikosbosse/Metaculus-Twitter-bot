@@ -1,6 +1,7 @@
 # Questions to include in the alerts
 # All questions in these projects will be included
 projects:
+  - 1007 # Nuclear Risk Tournament
   - 1426 # Ukraine Conflict
   - 1683 # Monkeypox
   - 1703 # Biosecurity Tournament
