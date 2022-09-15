@@ -1,18 +1,18 @@
 # Questions to include in the alerts
 # All questions in these projects will be included
 projects:
-  - 1426
-  - 1683
-  - 1703
+  - 1426 # Ukraine Conflict
+  - 1683 # Monkeypox
+  - 1703 # Biosecurity Tournament
 # All questions below will be included
 questions:
-  - 2534
-  - 2797
-  - 8366
-  - 8855
-  - 9743
-  - 9969
-  - 10008
+  - 2534 # World War Three before 2050
+  - 2797 # No Non-Test Nuclear Detonations by 2024
+  - 8366 # Countries With 1+ Fatality From Nuclear Det.
+  - 8855 # Major Agriculture Export Bans by 2023-04
+  - 9743 # Zelenskyy Remains President of UA by 2023
+  - 9969 # Chinese involvement in Ukrainian conflict
+  - 10008 # Moldovan-Romanian union by 2025
 
 # After fetching all questions above, the ones that don't meet these criteria will be excluded
 # If a question meets all criteria except minimum_hours, then a "New question" alert is sent
