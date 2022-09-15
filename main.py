@@ -3,6 +3,8 @@ import re
 import time
 import yaml
 
+import pandas as pd
+
 from create_api import create_api
 from get_predictions import predictions
 
@@ -13,17 +15,26 @@ def get_config():
     return config
 
 
-def get_recent_alerts(api, no_duplicate_period):
-    tweets = api.user_timeline(screen_name="MetaculusAlert")
+def get_recent_alerts(no_duplicate_period):
+    alerts = pd.read_csv("alerts.csv")
     threshold = datetime.datetime.utcnow() - datetime.timedelta(
         hours=no_duplicate_period
     )
-    titles = []
-    for tweet in tweets:
-        if tweet.created_at.replace(tzinfo=None) < threshold:
-            break
-        titles.append(re.search(r"^([^\n]+)", tweet.text).group(0))
-    return titles
+    recently_tweeted = alerts[pd.to_datetime(alerts.last_alert_timestamp) >= threshold]
+    return recently_tweeted.question_id.values
+
+
+def write_recent_alert(question_id):
+    alerts = pd.read_csv("alerts.csv")
+    new_alert = pd.DataFrame(
+        {
+            "question_id": [question_id],
+            "last_alert_timestamp": [str(datetime.datetime.utcnow())],
+        }
+    )
+    alerts = pd.concat([alerts, new_alert]).groupby("question_id", as_index=False).max()
+    alerts.to_csv("alerts.csv", index=False)
+    return True
 
 
 def post_tweet(event="", context=""):
@@ -32,8 +43,8 @@ def post_tweet(event="", context=""):
     api = create_api()
     print("API created")
 
-    recent_alerts = get_recent_alerts(api, config["filters"]["no_duplicate_period"])
-    print("Fetched recent alerts")
+    recent_alerts = get_recent_alerts(config["filters"]["no_duplicate_period"])
+    print(f"Fetched recent alerts: {recent_alerts}")
 
     p = predictions(config, recent_alerts)
     tweets = p.get()
@@ -48,6 +59,7 @@ def post_tweet(event="", context=""):
                 )
                 print("")
                 print(tweet)
+                write_recent_alert(tweet["question_id"])
                 time.sleep(10)
         except Exception as e:
             raise e

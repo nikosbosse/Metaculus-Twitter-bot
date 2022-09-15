@@ -34,8 +34,8 @@ class predictions:
     def hours_ago(self, hours):
         return datetime.datetime.utcnow() - datetime.timedelta(hours=hours)
 
-    def is_question_included(self, title, data, prediction_type, prediction_format):
-        if title in self.recent_alerts:
+    def is_question_included(self, data, prediction_type, prediction_format):
+        if data["id"] in self.recent_alerts:
             print("Question skipped (recent alert)")
             return False
         if data["number_of_predictions"] < self.filters["minimum_forecasts"]:
@@ -118,6 +118,7 @@ class predictions:
         title,
         title_short,
         url,
+        question_id,
     ):
 
         if alert_type == "swing":
@@ -138,7 +139,9 @@ class predictions:
                     current_pred_formatted = str(round(current_prediction, 2))
                 elif current_prediction >= 1e6:
                     change_formatted = f"{added_sign}{int(change / 1e6)} million"
-                    current_pred_formatted = f"{round(current_prediction / 1e6), 1} million"
+                    current_pred_formatted = (
+                        f"{round(current_prediction / 1e6), 1} million"
+                    )
                 else:
                     change_formatted = f"{added_sign}{int(change)}"
                     current_pred_formatted = str(int(current_prediction))
@@ -155,7 +158,9 @@ class predictions:
         tweet += f"https://www.metaculus.com{url}"
 
         chart_path = self.make_chart(df, title_short, prediction_type=prediction_type)
-        self.tweets.append({"text": tweet, "chart": chart_path})
+        self.tweets.append(
+            {"text": tweet, "chart": chart_path, "question_id": question_id}
+        )
         print("Tweet added!")
 
     # recover actual predicted values from the transformed values between 0 and 1
@@ -180,16 +185,14 @@ class predictions:
             # clean Metaculus' titles
             title = re.sub("\s+", " ", data["title"])
             title_short = re.sub("\s+", " ", data["title_short"])
-            try: 
+            try:
                 prediction_type = data["possibilities"]["type"]
             except:
                 next
             prediction_format = data["possibilities"].get("format")
 
             print(f"{id} - {title}")
-            if self.is_question_included(
-                title, data, prediction_type, prediction_format
-            ):
+            if self.is_question_included(data, prediction_type, prediction_format):
 
                 timeseries = data["community_prediction"]["history"]
                 df = pd.DataFrame.from_records(timeseries, columns=["t", "x1"])
@@ -242,6 +245,7 @@ class predictions:
                         title=title,
                         title_short=title_short,
                         url=data["page_url"],
+                        question_id=data["id"],
                     )
 
                 elif pd.to_datetime(
@@ -291,6 +295,7 @@ class predictions:
                             title=title,
                             title_short=title_short,
                             url=data["page_url"],
+                            question_id=data["id"],
                         )
                         break
 
