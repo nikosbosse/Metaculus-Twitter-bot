@@ -27,11 +27,8 @@ def get_recent_alerts(no_duplicate_period):
 def write_recent_alerts(tweets):
     old_alerts = pd.read_csv("alerts.csv")
     new_alerts = pd.DataFrame(
-        {
-            "question_id": [t["question_id"] for t in tweets],
-            "last_alert_timestamp": [str(datetime.datetime.utcnow())],
-        }
-    )
+        {"question_id": [t["question_id"] for t in tweets]}
+    ).assign(last_alert_timestamp=str(datetime.datetime.utcnow()))
     alerts = (
         pd.concat([old_alerts, new_alerts]).groupby("question_id", as_index=False).max()
     )
@@ -53,18 +50,19 @@ def post_tweet(event="", context=""):
 
     print("---")
     print(f"{len(tweets)} tweets queued…")
-    for tweet in tweets:
-        try:
-            if tweet:
-                api.update_status_with_media(
-                    status=tweet["text"], filename=tweet["chart"]
-                )
-                print("")
-                print(tweet)
-                time.sleep(10)
-        except Exception as e:
-            raise e
-    write_recent_alerts(tweets)
+    if len(tweets) > 0:
+        for tweet in tweets:
+            try:
+                if tweet:
+                    api.update_status_with_media(
+                        status=tweet["text"], filename=tweet["chart"]
+                    )
+                    print("")
+                    print(tweet)
+                    time.sleep(10)
+            except Exception as e:
+                raise e
+        write_recent_alerts(tweets)
 
 
 if __name__ == "__main__":
