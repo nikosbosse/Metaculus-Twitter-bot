@@ -8,6 +8,8 @@ import pandas as pd
 from create_api import create_api
 from get_predictions import predictions
 
+ALERTS_FILE_GCS = "gs://metaculus-twitter-bot/alerts.csv"
+
 
 def get_config():
     with open("config.yml") as file:
@@ -16,7 +18,7 @@ def get_config():
 
 
 def get_recent_alerts(no_duplicate_period):
-    alerts = pd.read_csv("alerts.csv")
+    alerts = pd.read_csv(ALERTS_FILE_GCS)
     threshold = datetime.datetime.utcnow() - datetime.timedelta(
         hours=no_duplicate_period
     )
@@ -25,14 +27,14 @@ def get_recent_alerts(no_duplicate_period):
 
 
 def write_recent_alerts(tweets):
-    old_alerts = pd.read_csv("alerts.csv")
+    old_alerts = pd.read_csv(ALERTS_FILE_GCS)
     new_alerts = pd.DataFrame(
         {"question_id": [t["question_id"] for t in tweets]}
     ).assign(last_alert_timestamp=str(datetime.datetime.utcnow()))
     alerts = (
         pd.concat([old_alerts, new_alerts]).groupby("question_id", as_index=False).max()
     )
-    alerts.to_csv("alerts.csv", index=False)
+    alerts.to_csv(ALERTS_FILE_GCS, index=False)
     return True
 
 
