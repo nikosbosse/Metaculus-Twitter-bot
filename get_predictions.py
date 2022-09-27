@@ -1,7 +1,5 @@
-from calendar import c
 import datetime
 import re
-from unittest import skip
 import requests
 import tempfile
 
