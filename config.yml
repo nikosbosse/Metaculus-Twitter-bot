@@ -19,6 +19,8 @@ questions:
   - 9969 # Chinese involvement in Ukrainian conflict
   - 10008 # Moldovan-Romanian union by 2025
   - 12591 # Nuclear Detonation in Ukraine by 2023
+  - 12593 # 2022 Russian Nuclear Detonation in the US
+  - 12596 # 2022 US Nuclear Detonation in Russia
 
 # After fetching all questions above, the ones that don't meet these criteria will be excluded
 # If a question meets all criteria except minimum_hours, then a "New question" alert is sent
