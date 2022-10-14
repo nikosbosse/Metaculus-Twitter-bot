@@ -1,11 +1,7 @@
 import datetime
 import re
 import requests
-import tempfile
 
-from matplotlib.dates import DateFormatter
-from matplotlib.pyplot import style
-import matplotlib.ticker as mtick
 import pandas as pd
 
 CONFIG_FILE = "config.yml"
@@ -52,71 +48,15 @@ class predictions:
             return False
         return True
 
-    def make_chart(self, df, title_short, prediction_type):
-        if df.time.min() < self.hours_ago(24 * 365.2425):
-            date_format = "%B %Y"
-        elif df.time.min() > self.hours_ago(24 * 5):
-            date_format = "%-d %b %H:%M"
-        else:
-            date_format = "%-d %b"
-
-        style.use("dark_background")  # Sets all text and lines to white
-        ax = df.plot(
-            x="time",
-            y=["lower", "prediction", "upper"],
-            kind="line",
-            color=(
-                [110 / 255, 116 / 255, 127 / 255, 0.8],  # "#61676D",
-                "#AEB1B4",
-                [110 / 255, 116 / 255, 127 / 255, 0.8],  # "#61676D", # "#61676D"
-            ),
-            linewidth=2,
-            xlabel="",
-            ylabel="Metaculus community prediction",
-            legend=False,
-            fontsize=14,
-            figsize=(14, 8),
-        )
-
-        if prediction_type == "binary":
-            ax.set_ylim([0, 1])
-            ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
-
-        ax.set_title(title_short, fontsize=18)
-        ax.set_facecolor("#282F37")
-        ax.fill_between(df["time"], df["lower"], df["upper"], color="w", alpha=0.1)
-
-        ax.xaxis.set_major_formatter(DateFormatter(date_format))
-
-        ax.grid("on", axis="y", linewidth=0.2)
-        ax.spines["right"].set_visible(False)
-        ax.spines["top"].set_visible(False)
-        ax.margins(x=0)
-
-        with tempfile.NamedTemporaryFile(mode="wb", dir="/tmp") as png:
-            filepath = f"{png.name}.png"
-            ax.get_figure().savefig(
-                filepath,
-                bbox_inches="tight",
-                pad_inches=0.2,
-                dpi=300,
-                facecolor="#282F37",  #'none' maybe?
-                transparent=False,
-            )
-        return filepath
-
     def add_tweet(
         self,
         prediction_type,
         alert_type,
-        df,
         current_prediction,
         change,
         elapsed,
         title,
-        title_short,
         url,
-        question_id,
     ):
 
         if alert_type == "swing":
@@ -155,10 +95,7 @@ class predictions:
         tweet += alert_text
         tweet += f"https://www.metaculus.com{url}"
 
-        chart_path = self.make_chart(df, title_short, prediction_type=prediction_type)
-        self.tweets.append(
-            {"text": tweet, "chart": chart_path, "question_id": question_id}
-        )
+        self.tweets.append({"text": tweet})
         print("Tweet added!")
 
     # recover actual predicted values from the transformed values between 0 and 1
@@ -235,15 +172,12 @@ class predictions:
 
                     self.add_tweet(
                         alert_type="new",
-                        df=df,
                         current_prediction=current_prediction,
                         prediction_type=prediction_type,
                         change=None,
                         elapsed=threshold["hours"],
                         title=title,
-                        title_short=title_short,
                         url=data["page_url"],
-                        question_id=data["id"],
                     )
 
                 elif pd.to_datetime(
@@ -285,15 +219,12 @@ class predictions:
                         # add tweet if loop executed until here
                         self.add_tweet(
                             alert_type="swing",
-                            df=df,
                             current_prediction=current_prediction,
                             change=change,
                             prediction_type=prediction_type,
                             elapsed=threshold["hours"],
                             title=title,
-                            title_short=title_short,
                             url=data["page_url"],
-                            question_id=data["id"],
                         )
                         break
 
