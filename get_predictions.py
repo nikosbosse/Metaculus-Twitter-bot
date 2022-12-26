@@ -208,9 +208,6 @@ class predictions:
                 # convert timestamps to datetime
                 df["time"] = pd.to_datetime(df.time, unit="s")
 
-                # remove data points in the future
-                df = df[df.time <= datetime.datetime.now()]
-
                 if prediction_type == "continuous":
                     lower_bound = data["possibilities"]["scale"]["min"]
                     upper_bound = data["possibilities"]["scale"]["max"]
