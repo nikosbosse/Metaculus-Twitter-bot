@@ -212,6 +212,7 @@ class predictions:
 
                 # convert timestamps to datetime
                 df["time"] = pd.to_datetime(df.time, unit="s")
+                df = df.sort_values("time")
 
                 # remove data points in the future
                 df = df[df.time <= datetime.datetime.now()]
