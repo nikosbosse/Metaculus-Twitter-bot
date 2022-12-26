@@ -175,6 +175,11 @@ class predictions:
 
         question_ids = self.get_question_ids()
 
+        # remove excluded questions
+        question_ids = [
+            qid for qid in question_ids if qid not in self.filters["excluded_questions"]
+        ]
+
         # for every question, get past community predictions and compare whether there has been a significant change
         for id in question_ids:
             question_url = "https://www.metaculus.com/api2/questions/" + str(id)
