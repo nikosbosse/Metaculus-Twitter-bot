@@ -33,6 +33,8 @@ filters:
     - binary
     - continuous
   no_duplicate_period: 24 # Number of hours during which a question will be ignored after an alert
+  excluded_questions:
+    - 10557
 
 # Change thresholds (when at least 1 of these is true, a tweet will be sent)
 # - absolute change of >5% in the last 5 hours
